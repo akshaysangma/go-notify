@@ -1,0 +1,23 @@
+server:
+  port: 8080
+  read_timeout: 5s
+  write_timeout: 10s
+  idle_timeout: 30s
+
+database:
+  connection_string: "postgresql://user:password@localhost:5432/go_notify_db?sslmode=disable"
+  max_conns: 10
+
+redis:
+  address: "localhost:6379"
+
+webhook:
+  url: "https://webhook.site/d4f79af8-7ec4-4e50-a216-5dd3d8a4f645"
+  character_limit: 250
+
+scheduler:
+  default_frequency: 2
+  default_interval_secs: 30
+
+app:
+  environment: "development"

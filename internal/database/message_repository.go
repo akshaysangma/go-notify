@@ -1,0 +1,113 @@
+package database
+
+import (
+	"context"
+	"fmt"
+
+	"github.com/akshaysangma/go-notify/internal/database/sqlc"
+	"github.com/akshaysangma/go-notify/internal/messages"
+	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/jackc/pgx/v5/pgxpool"
+)
+
+type PostgresMessageRepository struct {
+	queries *sqlc.Queries
+}
+
+func NewPostgresMessageRepository(pool *pgxpool.Pool) *PostgresMessageRepository {
+	return &PostgresMessageRepository{
+		queries: sqlc.New(pool),
+	}
+}
+
+// mapDBMessageToDomain converts a sqlc.Message to a messages.Message domain model.
+func mapDBPendingMessageToDomain(dbMsg *sqlc.GetPendingMessagesRow) (*messages.Message, error) {
+	msg := &messages.Message{
+		ID:        dbMsg.ID.String(),
+		Content:   dbMsg.Content,
+		Recipient: dbMsg.RecipientPhoneNumber,
+		Status:    string(dbMsg.Status),
+		CreatedAt: dbMsg.CreatedAt,
+		UpdatedAt: dbMsg.UpdatedAt,
+	}
+
+	if dbMsg.ExternalMessageID.Valid {
+		msg.ExternalMessageID = &dbMsg.ExternalMessageID.String
+	}
+
+	return msg, nil
+}
+
+// mapDBMessageToDomain converts a sqlc.Message to a messages.Message domain model.
+func mapDBSentMessageToDomain(dbMsg *sqlc.GetAllSentMessagesRow) (*messages.Message, error) {
+	msg := &messages.Message{
+		ID:        dbMsg.ID.String(),
+		Content:   dbMsg.Content,
+		Recipient: dbMsg.RecipientPhoneNumber,
+		Status:    string(dbMsg.Status),
+		CreatedAt: dbMsg.CreatedAt,
+		UpdatedAt: dbMsg.UpdatedAt,
+	}
+
+	if dbMsg.ExternalMessageID.Valid {
+		msg.ExternalMessageID = &dbMsg.ExternalMessageID.String
+	}
+
+	return msg, nil
+}
+
+func (r *PostgresMessageRepository) GetPendingMessages(ctx context.Context, limit int32) ([]messages.Message, error) {
+	pendingMsgs, err := r.queries.GetPendingMessages(ctx, limit)
+	if err != nil {
+		return nil, fmt.Errorf("fail to fetch pending messages from db: %w", err)
+	}
+	var msgs []messages.Message
+	for _, dbMsg := range pendingMsgs {
+		msg, err := mapDBPendingMessageToDomain(&dbMsg)
+		if err != nil {
+			return nil, fmt.Errorf("failed to map db message to domain for ID %s: %w", dbMsg.ID.String(), err)
+		}
+		msgs = append(msgs, *msg)
+	}
+	return msgs, nil
+}
+
+func (r *PostgresMessageRepository) UpdateMessageStatus(ctx context.Context, msg messages.Message) error {
+	updateParams := sqlc.UpdateMessageStatusParams{
+		Status: sqlc.NotificationsMessageStatus(msg.Status),
+	}
+
+	if msg.ExternalMessageID != nil {
+		updateParams.ExternalMessageID = pgtype.Text{String: *msg.ExternalMessageID, Valid: true}
+	} else {
+		updateParams.ExternalMessageID = pgtype.Text{Valid: false}
+	}
+
+	if msg.LastFailureReason != nil {
+		updateParams.LastFailureReason = pgtype.Text{String: *msg.LastFailureReason, Valid: true}
+	} else {
+		updateParams.LastFailureReason = pgtype.Text{Valid: false}
+	}
+
+	err := r.queries.UpdateMessageStatus(ctx, updateParams)
+	if err != nil {
+		return fmt.Errorf("failed to update Message Status: %w", err)
+	}
+	return nil
+}
+
+func (r *PostgresMessageRepository) GetSentMessages(ctx context.Context, limit, offset int32) ([]messages.Message, error) {
+	sentMsgs, err := r.queries.GetAllSentMessages(ctx, sqlc.GetAllSentMessagesParams{Limit: limit, Offset: offset})
+	if err != nil {
+		return nil, fmt.Errorf("fail to fetch all sent messages: %w", err)
+	}
+	var msgs []messages.Message
+	for _, dbMsg := range sentMsgs {
+		msg, err := mapDBSentMessageToDomain(&dbMsg)
+		if err != nil {
+			return nil, fmt.Errorf("failed to map db message to domain for ID %s: %w", dbMsg.ID.String(), err)
+		}
+		msgs = append(msgs, *msg)
+	}
+	return msgs, nil
+}

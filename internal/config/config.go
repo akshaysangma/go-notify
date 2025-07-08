@@ -1,0 +1,40 @@
+package config
+
+import (
+	"fmt"
+
+	"github.com/spf13/viper"
+)
+
+// LoadConfig loads application configuration from file and environment variables
+func LoadConfig() (*AppConfig, error) {
+	viper.SetConfigName("config")
+	viper.SetConfigType("yaml")
+	viper.AddConfigPath(".")
+
+	viper.AutomaticEnv()
+
+	err := viper.ReadInConfig()
+	if err != nil {
+		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
+			fmt.Println("WARNING: Config file not found. Using environment variables.")
+		} else {
+			return nil, fmt.Errorf("failed to read config file: %w", err)
+		}
+	}
+
+	var cfg AppConfig
+	if err := viper.Unmarshal(&cfg); err != nil {
+		return nil, fmt.Errorf("unable to unmarshal config into struct: %w", err)
+	}
+
+	// Validate essential configurations
+	if cfg.Database.ConnectionString == "" {
+		return nil, fmt.Errorf("database connection string is not configured")
+	}
+	if cfg.Webhook.URL == "" {
+		return nil, fmt.Errorf("webhook URL is not configured")
+	}
+
+	return &cfg, nil
+}
