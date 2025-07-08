@@ -1,0 +1,16 @@
+meta {
+  name: GetAllSentRequest
+  type: http
+  seq: 1
+}
+
+get {
+  url: http://localhost:8080/api/v1/messages/sent?limit=3&offset=2
+  body: none
+  auth: inherit
+}
+
+params:query {
+  limit: 3
+  offset: 2
+}

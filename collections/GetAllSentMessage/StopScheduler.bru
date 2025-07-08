@@ -1,0 +1,15 @@
+meta {
+  name: StopScheduler
+  type: http
+  seq: 5
+}
+
+post {
+  url: http://localhost:8080/api/v1/scheduler?action=stop
+  body: none
+  auth: inherit
+}
+
+params:query {
+  action: stop
+}

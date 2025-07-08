@@ -16,8 +16,10 @@ webhook:
   character_limit: 250
 
 scheduler:
-  default_frequency: 2
-  default_interval_secs: 30
+  message_rate: 2
+  runs_every: 10s
+  grace_period: 5s
+  
 
 app:
   environment: "development"

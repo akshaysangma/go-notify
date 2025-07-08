@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/spf13/viper"
 )
@@ -34,6 +35,19 @@ func LoadConfig() (*AppConfig, error) {
 	}
 	if cfg.Webhook.URL == "" {
 		return nil, fmt.Errorf("webhook URL is not configured")
+	}
+
+	if cfg.Scheduler.MessageRate <= 0 {
+		fmt.Println("WARNING: Scheduler Message Rate set to 0 or less, defaulting to 2")
+		cfg.Scheduler.MessageRate = 2
+	}
+	if cfg.Scheduler.RunsEvery <= 0*time.Second {
+		fmt.Println("WARNING: Scheduler interval set to 0 or less, defaulting to 2 minute")
+		cfg.Scheduler.RunsEvery = 2 * time.Minute
+	}
+	if cfg.Scheduler.GracePeriod <= 0*time.Second || cfg.Scheduler.GracePeriod >= cfg.Scheduler.RunsEvery {
+		fmt.Println("WARNING: Scheduler grace period set to 0 or greater than scheduler Interval, defaulting to 30 secs")
+		cfg.Scheduler.GracePeriod = 30 * time.Second
 	}
 
 	return &cfg, nil

@@ -18,6 +18,7 @@ type ServerConfig struct {
 	ReadTimeout  time.Duration `mapstructure:"read_timeout"`
 	WriteTimeout time.Duration `mapstructure:"write_timeout"`
 	IdleTimeout  time.Duration `mapstructure:"idle_timeout"`
+	GracePeriod  time.Duration `mapstructure:"grace_period"`
 }
 
 // DatabaseConfig holds PostgreSQL database configuration.
@@ -39,8 +40,9 @@ type WebhookConfig struct {
 
 // SchedulerConfig holds the message dispatch scheduler configuration.
 type SchedulerConfig struct {
-	DefaultFrequency    int32 `mapstructure:"default_frequency"`
-	DefaultIntervalSecs int32 `mapstructure:"default_interval_secs"`
+	MessageRate int           `mapstructure:"message_rate"`
+	RunsEvery   time.Duration `mapstructure:"runs_every"`
+	GracePeriod time.Duration `mapstructure:"grace_period"`
 }
 
 // AppEnvConfig holds application environment settings.

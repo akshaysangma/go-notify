@@ -6,6 +6,7 @@ import (
 
 	"github.com/akshaysangma/go-notify/internal/database/sqlc"
 	"github.com/akshaysangma/go-notify/internal/messages"
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -75,6 +76,7 @@ func (r *PostgresMessageRepository) GetPendingMessages(ctx context.Context, limi
 func (r *PostgresMessageRepository) UpdateMessageStatus(ctx context.Context, msg messages.Message) error {
 	updateParams := sqlc.UpdateMessageStatusParams{
 		Status: sqlc.NotificationsMessageStatus(msg.Status),
+		ID:     uuid.MustParse(msg.ID),
 	}
 
 	if msg.ExternalMessageID != nil {
