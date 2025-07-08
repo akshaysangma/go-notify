@@ -1,0 +1,35 @@
+# Binaries for programs and plugins
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Test binaries
+*.test
+
+# Compiled Go packages
+*.a
+*.o
+
+# Go module cache
+# This ignores the Go module cache, as it's typically managed by Go itself
+# and doesn't need to be versioned.
+.go/
+
+# Dependency directories
+# These are usually managed by Go modules and are not committed to Git.
+vendor/
+
+# Log files
+*.log
+
+# Temporary files
+*~
+*.bak
+*.tmp
+
+# IDE and editor specific files
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
