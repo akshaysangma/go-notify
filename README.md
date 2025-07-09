@@ -133,8 +133,8 @@ This project utilizes several third-party Go libraries and tools to facilitate d
 
 ### Libraries
 
-* **`github.com/spf13/viper`**: configuration manager.
-* **`go.uber.org/zap`**: structured logger.
+* **`github.com/spf13/viper`**: Configuration manager.
+* **`go.uber.org/zap`**: Structured logger.
 * **`github.com/jackc/pgx/v5`**: PostgreSQL driver and toolkit.
 * **`github.com/go-redis/redis/v8`**: Redis client for Go.
 * **`github.com/google/uuid`**: Provides an implementation for UUIDs.
