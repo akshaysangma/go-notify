@@ -8,8 +8,10 @@ Go Notify is a robust and scalable message-sending service designed to automatic
 * **Automatic Message Dispatch**: A scheduler periodically sends pending messages from the database.
 * **API Control**: Endpoints to start and stop the message sending scheduler and to retrieve sent messages.
 * **Database Integration**: Utilizes a PostgreSQL database for message storage and retrieval.
+* **Cache Integration**: Cache mechanism enabled with Redis.
 * **Configuration Management**: Easily configurable through a `config.yaml` file.
-* **Swagger Documentation**: Comprehensive API documentation using Swagger.
+* **Swagger Documentation**: API documentation using Swagger.
+
 
 ## Project Structure
 * `api`: Handles HTTP requests, routing, and response handling.
