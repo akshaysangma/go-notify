@@ -70,7 +70,7 @@ func main() {
 	msgRepo := database.NewPostgresMessageRepository(pgPool)
 	webhookSiteSenderClient := webhook.NewWebhookSiteSender(cfg.Webhook.URL, cfg.Webhook.CharacterLimit, cfg.Server.WriteTimeout)
 	redisClient := redis.NewRedisService(cfg.Redis.Address, logger)
-	msgService := messages.NewMessageService(msgRepo, webhookSiteSenderClient, logger, redisClient, workerPoolSize)
+	msgService := messages.NewMessageService(msgRepo, webhookSiteSenderClient, logger, redisClient, workerPoolSize, cfg.Scheduler.JobTimeout)
 	msgdispatchScheduler := scheduler.NewMessageDispatchSchedulerImpl(msgService, logger, cfg.Scheduler)
 	// Initial Start
 
@@ -104,11 +104,11 @@ func main() {
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, syscall.SIGINT, syscall.SIGTERM)
 
-	<-stop // Block until a signal is received
+	<-stop
 
 	logger.Info("Shutdown signal received. Starting graceful shutdown...")
 
-	// 1. Shut down the scheduler first
+	// Shut down the scheduler
 	if msgdispatchScheduler.IsRunning() {
 		logger.Info("Stopping message scheduler gracefully...")
 		if err := msgdispatchScheduler.Stop(); err != nil {
@@ -120,12 +120,18 @@ func main() {
 		logger.Info("Message scheduler was not running.")
 	}
 
-	// 2. Shut down the HTTP server
-	// Create a context with a timeout for the server shutdown
-	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), cfg.Server.WriteTimeout+cfg.Server.IdleTimeout)
+	var shutdownTimeout time.Duration
+	if cfg.Server.GracePeriod > 0 {
+		shutdownTimeout = cfg.Server.GracePeriod
+	} else {
+		// If no specific grace period is set.
+		shutdownTimeout = cfg.Server.WriteTimeout + cfg.Server.IdleTimeout
+	}
+	// Shut down the HTTP server
+	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), shutdownTimeout)
 	defer shutdownCancel()
 
-	logger.Info("Stopping HTTP server gracefully...")
+	logger.Info("Stopping HTTP server gracefully...", zap.Duration("grace_period", shutdownTimeout))
 	if err := server.Shutdown(shutdownCtx); err != nil {
 		logger.Error("HTTP server graceful shutdown failed", zap.Error(err))
 	} else {

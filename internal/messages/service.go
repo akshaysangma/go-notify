@@ -26,6 +26,7 @@ type MessageService struct {
 	logger       *zap.Logger
 	cacheService CacheService
 	workerCount  int
+	jobTimeout   time.Duration
 }
 
 func NewMessageService(
@@ -34,6 +35,7 @@ func NewMessageService(
 	logger *zap.Logger,
 	cacheService CacheService,
 	workerCount int,
+	jobTimeout time.Duration,
 ) *MessageService {
 	return &MessageService{
 		repo:         repo,
@@ -41,6 +43,7 @@ func NewMessageService(
 		logger:       logger,
 		cacheService: cacheService,
 		workerCount:  workerCount,
+		jobTimeout:   jobTimeout,
 	}
 }
 
@@ -81,12 +84,16 @@ func (s *MessageService) worker(ctx context.Context, wg *sync.WaitGroup, id int,
 	defer wg.Done()
 	s.logger.Info("Worker started", zap.Int("worker_id", id))
 	for msg := range jobs {
+
 		// Stop processing if the parent context is cancelled.
 		if ctx.Err() != nil {
 			s.logger.Warn("Context cancelled, worker stopping early.", zap.Int("worker_id", id), zap.Error(ctx.Err()))
 			return
 		}
-		if err := s.sendMessage(ctx, msg); err != nil {
+		// Create a new context with the per-job timeout.
+		jobCtx, cancel := context.WithTimeout(context.Background(), s.jobTimeout)
+		defer cancel()
+		if err := s.sendMessage(jobCtx, msg); err != nil {
 			s.logger.Error("Worker failed to send message",
 				zap.Int("worker_id", id),
 				zap.String("message_id", msg.ID),

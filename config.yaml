@@ -3,6 +3,7 @@ server:
   read_timeout: 5s
   write_timeout: 10s
   idle_timeout: 30s
+  grace_period: 5s
 
 database:
   connection_string: "postgresql://user:password@localhost:5432/go_notify_db?sslmode=disable"
@@ -17,8 +18,9 @@ webhook:
 
 scheduler:
   message_rate: 2
-  runs_every: 10s
+  runs_every: 2m
   grace_period: 5s
+  job_timeout: 10s
   
 
 app:

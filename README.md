@@ -125,6 +125,8 @@ the msg ID and reason etc. Current implementation uses one table only.
     - Cons:
         - Performance Overhead: Constantly creating and destroying goroutines for every run introduces unnecessary performance overhead.
 - [Message Table Schema](sql/schema/20250708142121_create_message_table.sql) - content lenght on the database can be enforced using VARCHAR(size). Opted to try conditional CONSTRAINT.
--  A multi-stage [Dockerfile](Dockerfile) is used to create a small and secure production image.
-- Needs Go version 
-- Middleware - Auth, LoggerContext, Prometheus etc. were skipped to respect time
+- The Scheduler config `grace_period` defines the timeout for each processing cycle (`runs_every` - `grace_period`) to prevent job overlaps, ensuring scheduler stability. The `timeout jobs` will rerun next `tick`.
+- Add `job_timeout` to avoid hang up due to I/O block during graceful shutdown.
+- A multi-stage [Dockerfile](Dockerfile) is used to create a small and secure production image.
+- To prioritize core functionality, middleware for features like authentication and monitoring was deferred
+- Assumption: `retrieve a list of sent messages` means sent all messages in the database (with basic offset, limit pagination) and not via [get the sent message list](https://docs.webhook.site/api/examples.html#get-all-data-sent-to-url) api of `webhook.site`

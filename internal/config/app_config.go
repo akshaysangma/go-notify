@@ -43,6 +43,7 @@ type SchedulerConfig struct {
 	MessageRate int           `mapstructure:"message_rate"`
 	RunsEvery   time.Duration `mapstructure:"runs_every"`
 	GracePeriod time.Duration `mapstructure:"grace_period"`
+	JobTimeout  time.Duration `mapstructure:"job_timeout"`
 }
 
 // AppEnvConfig holds application environment settings.
