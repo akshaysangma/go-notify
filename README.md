@@ -25,10 +25,11 @@ Go Notify is a robust and scalable message-sending service designed to automatic
 
 ### Prerequisites
 
-* Docker
-* Docker Compose
+* For Containize experience : Docker and Docker Compose
+* Go (version > 1.24) as it uses the new net/http features for http server.
+* Make (optional, for using the Makefile)
 
-### Installation
+### Installation & Running
 
 1.  **Clone the repository:**
 
@@ -39,46 +40,38 @@ Go Notify is a robust and scalable message-sending service designed to automatic
 
 2.  **Configuration:**
 
-    The application is configured using the `config.yaml` and `environment varaiables` file. You can modify this file to change the database connection string, Redis address, and other settings.
+    The application is configured using the `config.yaml` and environment variables. You can modify this file to change the database connection string, Redis address, and other settings.
 
-3.  **Build app**
+3.  **Using Docker (Recommended):**
 
-    - Docker
-    ```sh
-    docker build -t go-notify-app .
-    ```
+    * **Start the infrastructure (Postgres & Redis):**
+        ```sh
+        docker-compose up -d
+        ```
+    * **Build and run the application:**
+        ```sh
+        docker build -t go-notify-app .
+        docker run --rm -p 8080:8080 \
+        --network=go-notify_default \
+        -e DATABASE_CONNECTION_STRING="postgresql://user:password@postgres:5432/go_notify_db?sslmode=disable" \
+        -e REDIS_ADDRESS="redis:6379" \
+        go-notify-app
+        ```
 
-    - Go Tool
-    ```sh
-    CGO_ENABLED=0 GOOS=linux go build -ldflags="-w -s" -o bin/go-notify ./cmd/server
-    ```
+4.  **Using Go & Makefile:**
 
-4. _(Optional)_ **Start local Infra Docker Compose:** 
-
-    ```sh    
-    docker-compose up
-    ```
-
-5. **Run app** 
-    Ensure required environmental variable or config.yaml are set properly.
-
-    - Docker 
-        - Ensure you pass your environment variable via -e arg
-        - --network is need if you are running it against infra setup using Step 4 above.
-    ```sh
-    docker run --rm -p 8080:8080 \
-    --network=go-notify_default \
-    -e DATABASE_CONNECTION_STRING="postgresql://user:password@postgres:5432/go_notify_db?sslmode=disable" \
-    -e REDIS_ADDRESS="redis:6379" \
-    go-notify-app
-    ``` 
-
-    - Go tool
-        - Ensure required environmental variable or config.yaml are set properly on the machine.
-    ```sh
-       ./bin/go-notify
-    ```
-
+    * **Start the infrastructure (Postgres & Redis):**
+        ```sh
+        make up
+        ```
+    * **Build the application:**
+        ```sh
+        make build
+        ```
+    * **Run the application:**
+        ```sh
+        make run
+        ```
 
 ## API Documentation
 
@@ -98,10 +91,29 @@ The API is documented using Swagger. Once the application is running, you can ac
 * `GET /api/v1/messages/sent`: Retrieve a list of sent messages.
 * `POST /api/v1/messages`: Create a new message for multiple recipients.
 
+## Third-Party Tools & Libraries
+
+This project utilizes several third-party Go libraries and tools to facilitate development:
+
+### Libraries
+
+* **`github.com/spf13/viper`**: Used for handling application configuration from files, environment variables, and more.
+* **`go.uber.org/zap`**: A blazing fast, structured, leveled logger.
+* **`github.com/jackc/pgx/v5`**: A modern, feature-rich PostgreSQL driver and toolkit for Go.
+* **`github.com/go-redis/redis/v8`**: A high-performance Redis client for Go.
+* **`github.com/google/uuid`**: Provides an implementation for UUIDs (Universally Unique Identifiers).
+* **`github.com/swaggo/http-swagger`**: A middleware to automatically serve Swagger UI for your API.
+
+### Tools
+
+* **`github.com/swaggo/swag`**: A tool to automatically generate RESTful API documentation with Swagger 2.0.
+* **`github.com/pressly/goose`**: A database migration tool. It's used to manage and apply database schema changes.
+* **`github.com/sqlc-dev/sqlc`**: A command-line tool that generates type-safe, idiomatic Go code from SQL.
+
 
 ## Key Points / Notes
 - [docker-compose.yml](docker-compose.yml) contains required services to setup local environment : Postgres, Redis
-- [Makefile](Makefile) helper script
+- [Makefile](Makefile) contains helper scripts. Run `make help` for more info.
 - [Cache client](external/redis/client.go) failure to intialize cache client will not stop application from running.
 - For failed messages to send, we can maintain a seperate table for dead_letter_message which tracks
 the msg ID and reason etc. Current implementation uses one table only.
@@ -114,5 +126,5 @@ the msg ID and reason etc. Current implementation uses one table only.
         - Performance Overhead: Constantly creating and destroying goroutines for every run introduces unnecessary performance overhead.
 - [Message Table Schema](sql/schema/20250708142121_create_message_table.sql) - content lenght on the database can be enforced using VARCHAR(size). Opted to try conditional CONSTRAINT.
 -  A multi-stage [Dockerfile](Dockerfile) is used to create a small and secure production image.
-- Needs Go version > 1.24 as it uses the new net/http features for http server.
+- Needs Go version 
 - Middleware - Auth, LoggerContext, Prometheus etc. were skipped to respect time

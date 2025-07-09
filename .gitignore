@@ -19,6 +19,7 @@
 # Dependency directories
 # These are usually managed by Go modules and are not committed to Git.
 vendor/
+bin/
 
 # Log files
 *.log
