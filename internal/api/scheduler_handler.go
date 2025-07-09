@@ -65,7 +65,8 @@ func (h *SchedulerHandler) getSchedulerStatus(w http.ResponseWriter, r *http.Req
 // @Tags         scheduler
 // @Produce      json
 // @Param        action query      string  true  "The action to perform: 'start' or 'stop'" Enums(start, stop)
-// @Success      202  {object}  SuccessResponse "Action signal sent successfully"
+// @Success      202  {object}  SuccessResponse "Scheduler start signal sent."
+// @Success      200  {object}  SuccessResponse "Scheduler has stopped sucessfully."
 // @Failure      400  {object}  HTTPError "Invalid or missing 'action' parameter"
 // @Failure      409  {object}  HTTPError "Scheduler is already in the desired state"
 // @Failure      500  {object}  HTTPError "Internal server error while performing the action"
@@ -95,7 +96,7 @@ func (h *SchedulerHandler) schedulerControl(w http.ResponseWriter, r *http.Reque
 			WriteJSONErrorResponse(w, http.StatusInternalServerError, "Failed to stop scheduler", err)
 			return
 		}
-		WriteJSONResponse(w, http.StatusAccepted, SuccessResponse{Message: "Scheduler stop signal sent."})
+		WriteJSONResponse(w, http.StatusOK, SuccessResponse{Message: "Scheduler has stopped sucessfully."})
 	default:
 		WriteJSONErrorResponse(w, http.StatusBadRequest, "Invalid or missing 'action' query parameter. Must be 'start' or 'stop'.", fmt.Errorf("action query param missing"))
 	}

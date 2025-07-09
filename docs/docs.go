@@ -157,8 +157,14 @@ const docTemplate = `{
                     }
                 ],
                 "responses": {
+                    "200": {
+                        "description": "Scheduler has stopped sucessfully.",
+                        "schema": {
+                            "$ref": "#/definitions/api.SuccessResponse"
+                        }
+                    },
                     "202": {
-                        "description": "Action signal sent successfully",
+                        "description": "Scheduler start signal sent.",
                         "schema": {
                             "$ref": "#/definitions/api.SuccessResponse"
                         }

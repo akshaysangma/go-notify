@@ -113,10 +113,10 @@ func TestSchedulerHandler_schedulerControl(t *testing.T) {
 
 		handler.schedulerControl(rr, req)
 
-		assert.Equal(t, http.StatusAccepted, rr.Code)
+		assert.Equal(t, http.StatusOK, rr.Code)
 		var body SuccessResponse
 		_ = json.Unmarshal(rr.Body.Bytes(), &body)
-		assert.Equal(t, "Scheduler stop signal sent.", body.Message)
+		assert.Equal(t, "Scheduler has stopped sucessfully.", body.Message)
 		mockScheduler.AssertExpectations(t)
 	})
 
