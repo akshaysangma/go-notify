@@ -130,3 +130,4 @@ the msg ID and reason etc. Current implementation uses one table only.
 - A multi-stage [Dockerfile](Dockerfile) is used to create a small and secure production image.
 - To prioritize core functionality, middleware for features like authentication and monitoring was deferred
 - Assumption: `retrieve a list of sent messages` means sent all messages in the database (with basic offset, limit pagination) and not via [get the sent message list](https://docs.webhook.site/api/examples.html#get-all-data-sent-to-url) api of `webhook.site`
+- The Stop API command is blocking call until scheduler has shutdown in current Implementation. 
