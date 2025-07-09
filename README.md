@@ -76,8 +76,12 @@ Go Notify is a robust and scalable message-sending service designed to automatic
 ## API Documentation
 
 The API is documented using Swagger. Once the application is running, you can access the Swagger UI at:
-
 [http://localhost:8080/swagger/index.html](http://localhost:8080/swagger/index.html)
+
+## Database Schema & Queries
+
+This directory contains the PostgreSQL database schema definitions and SQL queries used by the application.
+[Database Schemas and Queries](sql)
 
 ### Endpoints
 
@@ -97,12 +101,13 @@ This project utilizes several third-party Go libraries and tools to facilitate d
 
 ### Libraries
 
-* **`github.com/spf13/viper`**: Used for handling application configuration from files, environment variables, and more.
-* **`go.uber.org/zap`**: A blazing fast, structured, leveled logger.
-* **`github.com/jackc/pgx/v5`**: A modern, feature-rich PostgreSQL driver and toolkit for Go.
-* **`github.com/go-redis/redis/v8`**: A high-performance Redis client for Go.
-* **`github.com/google/uuid`**: Provides an implementation for UUIDs (Universally Unique Identifiers).
-* **`github.com/swaggo/http-swagger`**: A middleware to automatically serve Swagger UI for your API.
+* **`github.com/spf13/viper`**: configuration manager.
+* **`go.uber.org/zap`**: structured logger.
+* **`github.com/jackc/pgx/v5`**: PostgreSQL driver and toolkit.
+* **`github.com/go-redis/redis/v8`**: Redis client for Go.
+* **`github.com/google/uuid`**: Provides an implementation for UUIDs.
+* **`github.com/swaggo/http-swagger`**: Provides handler to automatically serve Swagger UI.
+* **`github.com/stretchr/testify`**: Provides helpers for assertion and mocking.
 
 ### Tools
 
