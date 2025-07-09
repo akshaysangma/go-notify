@@ -15,14 +15,21 @@ const (
 	maxLimit      = 100
 )
 
+// SchedulerController defines the interface for controlling the scheduler.
+type SchedulerController interface {
+	Start() error
+	Stop() error
+	IsRunning() bool
+}
+
 // SchedulerHandler holds the dependencies for the message-related API handlers.
 type SchedulerHandler struct {
-	scheduler *scheduler.MessageDispatchSchedulerImpl
+	scheduler SchedulerController
 	logger    *zap.Logger
 }
 
 // NewSchedulerHandler creates and configures a new SchedulerHandler using the standard library's ServeMux.
-func NewSchedulerHandler(scheduler *scheduler.MessageDispatchSchedulerImpl, logger *zap.Logger) *SchedulerHandler {
+func NewSchedulerHandler(scheduler SchedulerController, logger *zap.Logger) *SchedulerHandler {
 	h := &SchedulerHandler{
 		scheduler: scheduler,
 		logger:    logger,

@@ -1,0 +1,21 @@
+meta {
+  name: CreateMessage
+  type: http
+  seq: 5
+}
+
+post {
+  url: http://localhost:8080/api/v1/messages
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "content": "This is a message for multiple users.",
+    "recipients": [
+      "['+15551112222'",
+      " '+15553334444']"
+    ]
+  }
+}

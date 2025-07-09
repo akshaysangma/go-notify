@@ -1,6 +1,7 @@
 package api
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"net/http"
@@ -10,6 +11,12 @@ import (
 	"go.uber.org/zap"
 )
 
+// MessageServicer defines the interface for the message service accepted by message handler.
+type MessageServicer interface {
+	GetAllSentMessages(ctx context.Context, limit, offset int32) ([]messages.Message, error)
+	CreateMessages(ctx context.Context, content string, recipients []string, charLimit int) error
+}
+
 // CreateMessagesRequest defines the request body for creating a message for multiple recipients.
 type CreateMessagesRequest struct {
 	Content    string   `json:"content" example:"This is a message for multiple users."`
@@ -18,13 +25,13 @@ type CreateMessagesRequest struct {
 
 // MessageHandler holds the dependencies for the message-related API handlers.
 type MessageHandler struct {
-	service              *messages.MessageService
+	service              MessageServicer
 	allowedContentLength int
 	logger               *zap.Logger
 }
 
 // NewMessageHandler creates and configures a new MessageHandler using the standard library's ServeMux.
-func NewMessageHandler(service *messages.MessageService, contentLength int, logger *zap.Logger) *MessageHandler {
+func NewMessageHandler(service MessageServicer, contentLength int, logger *zap.Logger) *MessageHandler {
 	h := &MessageHandler{
 		service:              service,
 		logger:               logger,
