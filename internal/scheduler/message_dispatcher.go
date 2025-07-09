@@ -88,6 +88,8 @@ func (s *MessageDispatchSchedulerImpl) Stop() error {
 // loop is the main loop for the scheduler.
 func (s *MessageDispatchSchedulerImpl) loop() {
 	defer s.wg.Done()
+	// uncomment below if delay for first set of message processing is undesirable
+	// s.execute()
 	ticker := time.NewTicker(s.config.RunsEvery)
 	defer ticker.Stop()
 
