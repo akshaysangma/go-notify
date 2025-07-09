@@ -99,27 +99,6 @@ This directory contains the PostgreSQL database schema definitions and SQL queri
 * `GET /api/v1/messages/sent`: Retrieve a list of sent messages.
 * `POST /api/v1/messages`: Create a new message for multiple recipients.
 
-## Third-Party Tools & Libraries
-
-This project utilizes several third-party Go libraries and tools to facilitate development:
-
-### Libraries
-
-* **`github.com/spf13/viper`**: configuration manager.
-* **`go.uber.org/zap`**: structured logger.
-* **`github.com/jackc/pgx/v5`**: PostgreSQL driver and toolkit.
-* **`github.com/go-redis/redis/v8`**: Redis client for Go.
-* **`github.com/google/uuid`**: Provides an implementation for UUIDs.
-* **`github.com/swaggo/http-swagger`**: Provides handler to automatically serve Swagger UI.
-* **`github.com/stretchr/testify`**: Provides helpers for assertion and mocking.
-
-### Tools
-
-* **`github.com/swaggo/swag`**: A tool to automatically generate RESTful API documentation with Swagger 2.0.
-* **`github.com/pressly/goose`**: A database migration tool. It's used to manage and apply database schema changes.
-* **`github.com/sqlc-dev/sqlc`**: A command-line tool that generates type-safe, idiomatic Go code from SQL.
-
-
 ## Key Points / Notes
 - Assumption:
     - `retrieve a list of sent messages` means all sent messages in the database (with basic offset, limit pagination) and not via [get the sent message list](https://docs.webhook.site/api/examples.html#get-all-data-sent-to-url) api of `webhook.site`. Data was not retrieved from cache as it has only 24 hours data (ephemeral).
@@ -144,3 +123,23 @@ the msg ID and reason etc. Current implementation uses one table only.
 - The Stop API command is blocking call until scheduler has shutdown in current Implementation.
 - Test for only core components added.
 - CICD not added.
+
+## Third-Party Tools & Libraries
+
+This project utilizes several third-party Go libraries and tools to facilitate development:
+
+### Libraries
+
+* **`github.com/spf13/viper`**: configuration manager.
+* **`go.uber.org/zap`**: structured logger.
+* **`github.com/jackc/pgx/v5`**: PostgreSQL driver and toolkit.
+* **`github.com/go-redis/redis/v8`**: Redis client for Go.
+* **`github.com/google/uuid`**: Provides an implementation for UUIDs.
+* **`github.com/swaggo/http-swagger`**: Provides handler to automatically serve Swagger UI.
+* **`github.com/stretchr/testify`**: Provides helpers for assertion and mocking.
+
+### Tools
+
+* **`github.com/swaggo/swag`**: A tool to automatically generate RESTful API documentation with Swagger 2.0.
+* **`github.com/pressly/goose`**: A database migration tool. It's used to manage and apply database schema changes.
+* **`github.com/sqlc-dev/sqlc`**: A command-line tool that generates type-safe, idiomatic Go code from SQL.
