@@ -1,7 +1,7 @@
 
 # Go Notify
 
-Go Notify is a robust and scalable message-sending service designed to automatically dispatch notifications. It features a scheduler for sending pending messages in batches, API endpoints for controlling the service and retrieving message history, and Redis caching for enhanced performance.
+Go Notify is a robust and scalable message-sending service designed to automatically dispatch notifications. It features a scheduler for sending pending messages in batches, API endpoints for controlling the service and retrieving message history. Redis is used for caching.
 
 ## Features
 
@@ -42,36 +42,40 @@ Go Notify is a robust and scalable message-sending service designed to automatic
 
     The application is configured using the `config.yaml` and environment variables. You can modify this file to change the database connection string, Redis address, and other settings.
 
-3.  **Using Docker (Recommended):**
+3.  **Run Locally:**
+    * **Using Docker (Recommended):**
 
-    * **Start the infrastructure (Postgres & Redis):**
-        ```sh
-        docker-compose up -d
-        ```
-    * **Build and run the application:**
-        ```sh
-        docker build -t go-notify-app .
-        docker run --rm -p 8080:8080 \
-        --network=go-notify_default \
-        -e DATABASE_CONNECTION_STRING="postgresql://user:password@postgres:5432/go_notify_db?sslmode=disable" \
-        -e REDIS_ADDRESS="redis:6379" \
-        go-notify-app
-        ```
+        * **Start the infrastructure (Postgres & Redis):**
+            ```sh
+            docker-compose up -d
+            ```
+        * **Build:**
+            ```sh
+            docker build -t go-notify-app .
+            ```
+        * **Run the application:**
+            ```sh
+            docker run --rm -p 8080:8080 \
+            --network=go-notify_default \
+            -e DATABASE_CONNECTION_STRING="postgresql://user:password@postgres:5432/go_notify_db?sslmode=disable" \
+            -e REDIS_ADDRESS="redis:6379" \
+            go-notify-app
+            ```
 
-4.  **Using Go & Makefile:**
+    * **Using Go & Makefile:**
 
-    * **Start the infrastructure (Postgres & Redis):**
-        ```sh
-        make up
-        ```
-    * **Build the application:**
-        ```sh
-        make build
-        ```
-    * **Run the application:**
-        ```sh
-        make run
-        ```
+        * **Start the infrastructure (Postgres & Redis):**
+            ```sh
+            make up
+            ```
+        * **Build the application:**
+            ```sh
+            make build
+            ```
+        * **Run the application:**
+            ```sh
+            make run
+            ```
 
 ## API Documentation
 
