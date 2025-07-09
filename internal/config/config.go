@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/spf13/viper"
@@ -13,6 +14,8 @@ func LoadConfig() (*AppConfig, error) {
 	viper.SetConfigType("yaml")
 	viper.AddConfigPath(".")
 
+	// 2. Add these lines to help Viper correctly map and prioritize environment variables
+	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 	viper.AutomaticEnv()
 
 	err := viper.ReadInConfig()

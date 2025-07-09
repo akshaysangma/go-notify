@@ -1,13 +1,21 @@
 export DATABASE_URL="postgresql://user:password@127.0.0.1:5432/go_notify_db?sslmode=disable"
 
 
-.PHONY: infra-up infra-down migrate-up migrate-down generate build mock-data
+.PHONY: infra-up infra-down migrate-up migrate-down generate build mock-data docker-build docker-run
 
+docker-run: infra-up docker-build
+	@echo "Starting app in docker..."
+	docker run --rm -p 8080:8080 \
+  --network=go-notify_default \
+  -e DATABASE_CONNECTION_STRING="postgresql://user:password@postgres:5432/go_notify_db?sslmode=disable" \
+  -e REDIS_ADDRESS="redis:6379" \
+  go-notify-app
+	
 infra-up: ## Start all infrastructure services (PostgreSQL, Redis)
 	@echo "Starting infrastructure services..."
 	docker-compose up -d
 
-down: ## Stop and remove all infrastructure services
+infra-down: ## Stop and remove all infrastructure services
 	@echo "Stopping and removing infrastructure services..."
 	docker-compose down -v
 
@@ -27,6 +35,10 @@ generate: ## Run sqlc to generate Go code from SQL queries
 build: ## Build all Go service binaries (e.g., api-gateway)
 	@echo "Building Go binaries..."
 	go build -o bin/go-notify cmd/server/main.go # Builds server binary
+
+docker-build:
+	@echo "Building Server Image in Docker.."
+	docker build -t go-notify-app .
 
 mock-data: # Insert some data to postgres DB
 	@echo "Mocking pending data..."
