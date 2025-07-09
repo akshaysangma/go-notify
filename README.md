@@ -118,6 +118,7 @@ the msg ID and reason etc. Current implementation uses one table only.
     - Cons:
         - Performance Overhead: Constantly creating and destroying goroutines for every run introduces unnecessary performance overhead.
 - [Message Table Schema](sql/schema/20250708142121_create_message_table.sql) - content lenght on the database can be enforced using VARCHAR(size). Opted to try conditional CONSTRAINT.
+- If delay for first batch of message processing is undesirable uncomment [this line](https://github.com/akshaysangma/go-notify/blob/main/internal/scheduler/message_dispatcher.go#L92) . Note that due to this, scheduler ticker will start ticking from post first batch processing completion.
 - The Scheduler config `grace_period` defines the timeout for each processing cycle (`runs_every` - `grace_period`) to prevent job overlaps, ensuring scheduler stability. The `timeout jobs` will rerun next `tick`.
 - Add `job_timeout` to avoid hang up due to I/O block during graceful shutdown.
 - A multi-stage [Dockerfile](Dockerfile) is used to create a small and secure production image.
