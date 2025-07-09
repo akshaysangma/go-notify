@@ -141,3 +141,4 @@ the msg ID and reason etc. Current implementation uses one table only.
 - Assumption: `retrieve a list of sent messages` means all sent messages in the database (with basic offset, limit pagination) and not via [get the sent message list](https://docs.webhook.site/api/examples.html#get-all-data-sent-to-url) api of `webhook.site`. Data was not retrieved from cache as it has only 24 hours data (ephemeral).
 - The Stop API command is blocking call until scheduler has shutdown in current Implementation.
 - Test for only core components added.
+- CICD not added.
