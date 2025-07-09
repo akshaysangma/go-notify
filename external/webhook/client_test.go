@@ -26,15 +26,15 @@ func (m *MockRoundTripper) RoundTrip(req *http.Request) (*http.Response, error) 
 }
 
 func TestWebhookSiteSender_Send(t *testing.T) {
-	mockRT := new(MockRoundTripper) // Our mock for RoundTripper
+	mockRT := new(MockRoundTripper)
 	// Create an http.Client that uses our mock RoundTripper
 	mockClient := &http.Client{
 		Transport: mockRT,
-		Timeout:   5 * time.Second, // Match sender's timeout
+		Timeout:   5 * time.Second,
 	}
 
 	sender := NewWebhookSiteSender("http://example.com/webhook", 250, 5*time.Second)
-	sender.client = mockClient // Inject the http.Client with the mock Transport
+	sender.client = mockClient
 
 	ctx := context.Background()
 	to := "+1234567890"
@@ -44,12 +44,12 @@ func TestWebhookSiteSender_Send(t *testing.T) {
 	t.Run("Success - message sent", func(t *testing.T) {
 		responseBody := WebhookResponse{MessageID: expectedMessageID, Status: "accepted"}
 		jsonBody, _ := json.Marshal(responseBody)
-		req, _ := http.NewRequest(http.MethodPost, "http://example.com/webhook", nil) // Create a dummy request for resp.Request
+		req, _ := http.NewRequest(http.MethodPost, "http://example.com/webhook", nil)
 		resp := &http.Response{
 			StatusCode: http.StatusAccepted,
 			Body:       io.NopCloser(bytes.NewBuffer(jsonBody)),
 			Header:     make(http.Header),
-			Request:    req, // Must provide a request to avoid nil pointer dereference
+			Request:    req,
 		}
 
 		mockRT.On("RoundTrip", mock.AnythingOfType("*http.Request")).Return(resp, nil).Once()
@@ -68,24 +68,24 @@ func TestWebhookSiteSender_Send(t *testing.T) {
 		_, err := sender.Send(ctx, to, longContent)
 		assert.Error(t, err)
 		assert.ErrorIs(t, err, messages.ErrContentTooLong)
-		mockRT.AssertNotCalled(t, "RoundTrip") // Ensure no HTTP call was made
+		mockRT.AssertNotCalled(t, "RoundTrip")
 	})
 
 	t.Run("Error - recipient empty", func(t *testing.T) {
 		_, err := sender.Send(ctx, "", content)
 		assert.Error(t, err)
 		assert.ErrorIs(t, err, messages.ErrRecipientEmpty)
-		mockRT.AssertNotCalled(t, "RoundTrip") // Ensure no HTTP call was made
+		mockRT.AssertNotCalled(t, "RoundTrip")
 	})
 
 	t.Run("Error - http client returns error", func(t *testing.T) {
 		clientErr := errors.New("network error")
 		// Always return a non-nil *http.Response even on error to prevent panic in net/http
-		req, _ := http.NewRequest(http.MethodPost, "http://example.com/webhook", nil) // Create a dummy request
+		req, _ := http.NewRequest(http.MethodPost, "http://example.com/webhook", nil)
 		resp := &http.Response{
-			StatusCode: http.StatusInternalServerError, // Or any appropriate status for a network error
+			StatusCode: http.StatusInternalServerError,
 			Body:       io.NopCloser(bytes.NewBufferString("")),
-			Request:    req, // Must provide the request object
+			Request:    req,
 		}
 		mockRT.On("RoundTrip", mock.AnythingOfType("*http.Request")).Return(resp, clientErr).Once()
 
@@ -97,7 +97,7 @@ func TestWebhookSiteSender_Send(t *testing.T) {
 	})
 
 	t.Run("Error - webhook returns non-202 status", func(t *testing.T) {
-		req, _ := http.NewRequest(http.MethodPost, "http://example.com/webhook", nil) // Create a dummy request
+		req, _ := http.NewRequest(http.MethodPost, "http://example.com/webhook", nil)
 		resp := &http.Response{
 			StatusCode: http.StatusBadRequest,
 			Body:       io.NopCloser(bytes.NewBufferString(`{"error":"invalid recipient"}`)),
@@ -108,13 +108,13 @@ func TestWebhookSiteSender_Send(t *testing.T) {
 
 		_, err := sender.Send(ctx, to, content)
 		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "webhook responded with non-200 status code: 400")
+		assert.Contains(t, err.Error(), "webhook responded with non-202 status code: 400")
 		assert.Contains(t, err.Error(), `body: {"error":"invalid recipient"}`)
 		mockRT.AssertExpectations(t)
 	})
 
 	t.Run("Error - invalid webhook response JSON", func(t *testing.T) {
-		req, _ := http.NewRequest(http.MethodPost, "http://example.com/webhook", nil) // Create a dummy request
+		req, _ := http.NewRequest(http.MethodPost, "http://example.com/webhook", nil)
 		resp := &http.Response{
 			StatusCode: http.StatusAccepted,
 			Body:       io.NopCloser(bytes.NewBufferString(`invalid json`)),
@@ -130,9 +130,9 @@ func TestWebhookSiteSender_Send(t *testing.T) {
 	})
 
 	t.Run("Error - webhook response missing message ID", func(t *testing.T) {
-		responseBody := WebhookResponse{Status: "accepted"} // Missing MessageID
+		responseBody := WebhookResponse{Status: "accepted"}
 		jsonBody, _ := json.Marshal(responseBody)
-		req, _ := http.NewRequest(http.MethodPost, "http://example.com/webhook", nil) // Create a dummy request
+		req, _ := http.NewRequest(http.MethodPost, "http://example.com/webhook", nil)
 		resp := &http.Response{
 			StatusCode: http.StatusAccepted,
 			Body:       io.NopCloser(bytes.NewBuffer(jsonBody)),

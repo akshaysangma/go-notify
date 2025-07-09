@@ -27,10 +27,10 @@ type MessageDispatchSchedulerImpl struct {
 	messageService MessageDispatchScheduler
 	logger         *zap.Logger
 	config         config.SchedulerConfig
-	workerPoolSize int
-	isProcessing   atomic.Bool
-	isRunning      atomic.Bool
-	stopChan       chan struct{}
+	workerPoolSize int           // max allowed is 2 * runtime.NumCPU() for I/O ops
+	isProcessing   atomic.Bool   // state representing in flight status
+	isRunning      atomic.Bool   // state representing schedule running status
+	stopChan       chan struct{} // chan to signal graceful shutdown of scheduler
 	wg             sync.WaitGroup
 }
 

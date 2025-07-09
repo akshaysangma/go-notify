@@ -134,7 +134,7 @@ func (s *MessageService) sendMessage(ctx context.Context, msg Message) error {
 
 	msg.MarkAsSent(externalMessageID)
 	// If the webhook send succeeded but this DB update fails, the message remains
-	// in the 'sending' state and will be retried, which is the desired behavior.
+	// in the 'sending' state and will be retried.
 	if err := s.repo.UpdateMessageStatus(ctx, msg); err != nil {
 		s.logger.Error("Failed to mark message as 'sent' in DB after successful send", append(logFields, zap.Error(err))...)
 		return fmt.Errorf("failed to mark message %s as sent in DB: %w", msg.ID, err)
@@ -143,7 +143,7 @@ func (s *MessageService) sendMessage(ctx context.Context, msg Message) error {
 	s.logger.Info("Message successfully processed and marked as sent",
 		append(logFields, zap.String("external_id", externalMessageID))...)
 
-	// Caching is a best-effort operation; run it in the background with a timeout.
+	// try to cache
 	cacheCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	if cacheErr := s.cacheService.CacheSentMessage(cacheCtx, msg.ID, externalMessageID, time.Now()); cacheErr != nil {

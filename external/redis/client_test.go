@@ -34,9 +34,9 @@ func TestRedisService_CacheSentMessage(t *testing.T) {
 	observerCore, recordedLogs := observer.New(zap.DebugLevel)
 	mockLogger := zap.New(observerCore)
 
-	mockClient := new(MockRedisClientInterface) // Use the mock interface
+	mockClient := new(MockRedisClientInterface)
 	service := &RedisService{
-		client: mockClient, // Inject the mock
+		client: mockClient,
 		logger: mockLogger,
 	}
 
@@ -50,7 +50,8 @@ func TestRedisService_CacheSentMessage(t *testing.T) {
 
 	t.Run("Success - message cached", func(t *testing.T) {
 		statusCmd := redis.NewStatusCmd(ctx)
-		statusCmd.SetVal("OK") // Simulate successful Set operation
+		// Simulate successful Set operation
+		statusCmd.SetVal("OK")
 		mockClient.On("Set", ctx, expectedKey, fmt.Sprintf(expectedValue, externalMessageID, sentAt.Format(time.RFC3339)), expectedExpiration).Return(statusCmd).Once()
 
 		err := service.CacheSentMessage(ctx, messageID, externalMessageID, sentAt)
@@ -64,7 +65,8 @@ func TestRedisService_CacheSentMessage(t *testing.T) {
 	t.Run("Error - failed to cache message", func(t *testing.T) {
 		setErr := errors.New("redis set error")
 		statusCmd := redis.NewStatusCmd(ctx)
-		statusCmd.SetErr(setErr) // Simulate failed Set operation
+		// Simulate failed Set operation
+		statusCmd.SetErr(setErr)
 		mockClient.On("Set", ctx, expectedKey, fmt.Sprintf(expectedValue, externalMessageID, sentAt.Format(time.RFC3339)), expectedExpiration).Return(statusCmd).Once()
 
 		err := service.CacheSentMessage(ctx, messageID, externalMessageID, sentAt)
@@ -80,7 +82,8 @@ func TestRedisService_CacheSentMessage(t *testing.T) {
 
 	t.Run("Warn - client not initialized", func(t *testing.T) {
 		uninitializedService := &RedisService{
-			client: nil, // Simulate uninitialized client
+			// Simulate uninitialized client
+			client: nil,
 			logger: mockLogger,
 		}
 
@@ -90,7 +93,8 @@ func TestRedisService_CacheSentMessage(t *testing.T) {
 		assert.Equal(t, 1, recordedLogs.Len())
 		assert.Equal(t, zapcore.WarnLevel, recordedLogs.All()[0].Level)
 		assert.Equal(t, "Redis client is not initialized, cannot cache message", recordedLogs.All()[0].Message)
-		mockClient.AssertNotCalled(t, "Set") // Ensure Set was not called
+		// Ensure Set was not called
+		mockClient.AssertNotCalled(t, "Set")
 		recordedLogs.TakeAll()
 	})
 }

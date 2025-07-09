@@ -10,15 +10,14 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-var (
-	ErrPoolType = fmt.Errorf("bad pgx pool type")
-)
-
+// PostgresMessageRepository contains sqlc queries to execute type safe generated queries.
+// Object pool is used by services where multiple queries need to be ran in transactional manner.
 type PostgresMessageRepository struct {
 	queries *sqlc.Queries
-	pool    PgxPoolInterface // for TX
+	pool    PgxPoolInterface //for Transactions
 }
 
+// NewPostgresMessageRepository returns PostgresMessageRepository
 func NewPostgresMessageRepository(pool PgxPoolInterface) (*PostgresMessageRepository, error) {
 	if dBTX, ok := pool.(sqlc.DBTX); ok {
 		return &PostgresMessageRepository{
@@ -65,6 +64,8 @@ func mapDBSentMessageToDomain(dbMsg *sqlc.GetAllSentMessagesRow) (*messages.Mess
 	return msg, nil
 }
 
+// GetPendingMessages call sqlc generated GetPendingMessages for fetching pending messages.
+// Takes limit as param to control max fetch count.
 func (r *PostgresMessageRepository) GetPendingMessages(ctx context.Context, limit int32) ([]messages.Message, error) {
 	pendingMsgs, err := r.queries.GetPendingMessages(ctx, limit)
 	if err != nil {
@@ -81,6 +82,8 @@ func (r *PostgresMessageRepository) GetPendingMessages(ctx context.Context, limi
 	return msgs, nil
 }
 
+// GetPendingMessages call sqlc generated UpdateMessageStatus for updating message status.
+// Additionally it also updates external ID and LastFailureReason if avialable.
 func (r *PostgresMessageRepository) UpdateMessageStatus(ctx context.Context, msg messages.Message) error {
 	updateParams := sqlc.UpdateMessageStatusParams{
 		Status: sqlc.NotificationsMessageStatus(msg.Status),

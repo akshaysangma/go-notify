@@ -67,23 +67,27 @@ func main() {
 	workerPoolSize := 2 * runtime.NumCPU()
 	workerPoolSize = min(cfg.Scheduler.MessageRate, workerPoolSize)
 
+	// Intialize Repositories
 	msgRepo, err := database.NewPostgresMessageRepository(pgPool)
 	if err != nil {
 		logger.Fatal("failed to initialize message repository", zap.Error(err))
 	}
+
+	// Intialize external clients
 	webhookSiteSenderClient := webhook.NewWebhookSiteSender(cfg.Webhook.URL, cfg.Webhook.CharacterLimit, cfg.Server.WriteTimeout)
 	redisClient := redis.NewRedisService(cfg.Redis.Address, logger)
+
+	// Intialize services
 	msgService := messages.NewMessageService(msgRepo, webhookSiteSenderClient, logger, redisClient, workerPoolSize, cfg.Scheduler.JobTimeout)
 	msgdispatchScheduler := scheduler.NewMessageDispatchSchedulerImpl(msgService, logger, cfg.Scheduler)
-	// Initial Start
-
 	logger.Info("Starting message dispatching scheduler...")
 	msgdispatchScheduler.Start()
 
-	mux := http.NewServeMux()
+	// Intialize http handlers
 	messageH := api.NewMessageHandler(msgService, cfg.Webhook.CharacterLimit, logger)
 	schedulerH := api.NewSchedulerHandler(msgdispatchScheduler, logger)
 
+	mux := http.NewServeMux()
 	routes := api.NewRouterDependecies(mux, messageH, schedulerH, logger)
 	routes.RegisterRoutes()
 
@@ -111,7 +115,7 @@ func main() {
 
 	logger.Info("Shutdown signal received. Starting graceful shutdown...")
 
-	// Shut down the scheduler
+	// Shutdown scheduler
 	if msgdispatchScheduler.IsRunning() {
 		logger.Info("Stopping message scheduler gracefully...")
 		if err := msgdispatchScheduler.Stop(); err != nil {
@@ -123,18 +127,11 @@ func main() {
 		logger.Info("Message scheduler was not running.")
 	}
 
-	var shutdownTimeout time.Duration
-	if cfg.Server.GracePeriod > 0 {
-		shutdownTimeout = cfg.Server.GracePeriod
-	} else {
-		// If no specific grace period is set.
-		shutdownTimeout = cfg.Server.WriteTimeout + cfg.Server.IdleTimeout
-	}
 	// Shut down the HTTP server
-	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), shutdownTimeout)
+	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), cfg.Server.GracePeriod)
 	defer shutdownCancel()
 
-	logger.Info("Stopping HTTP server gracefully...", zap.Duration("grace_period", shutdownTimeout))
+	logger.Info("Stopping HTTP server gracefully...", zap.Duration("grace_period", cfg.Server.GracePeriod))
 	if err := server.Shutdown(shutdownCtx); err != nil {
 		logger.Error("HTTP server graceful shutdown failed", zap.Error(err))
 	} else {

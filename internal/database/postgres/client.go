@@ -9,6 +9,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
+// NewPostgresDB returns pgx connection pool for Postgres database interactions.
 func NewPostgresDB(ctx context.Context, cfg config.DatabaseConfig) (*pgxpool.Pool, error) {
 	connConfig, err := pgxpool.ParseConfig(cfg.ConnectionString)
 	if err != nil {

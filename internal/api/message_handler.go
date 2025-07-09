@@ -18,6 +18,7 @@ type MessageServicer interface {
 }
 
 // CreateMessagesRequest defines the request body for creating a message for multiple recipients.
+// TODO: add validator for Recipients and content's length
 type CreateMessagesRequest struct {
 	Content    string   `json:"content" example:"This is a message for multiple users."`
 	Recipients []string `json:"recipients" example:"['+15551112222', '+15553334444']"`

@@ -33,6 +33,7 @@ func LoadConfig() (*AppConfig, error) {
 	}
 
 	// Validate essential configurations
+	// TODO: Need to add more validations and defaults
 	if cfg.Database.ConnectionString == "" {
 		return nil, fmt.Errorf("database connection string is not configured")
 	}
@@ -51,6 +52,11 @@ func LoadConfig() (*AppConfig, error) {
 	if cfg.Scheduler.GracePeriod <= 0*time.Second || cfg.Scheduler.GracePeriod >= cfg.Scheduler.RunsEvery {
 		fmt.Println("WARNING: Scheduler grace period set to 0 or greater than scheduler Interval, defaulting to 30 secs")
 		cfg.Scheduler.GracePeriod = 30 * time.Second
+	}
+
+	if cfg.Server.GracePeriod <= 0 {
+		// If no specific grace period is set.
+		cfg.Server.GracePeriod = cfg.Server.WriteTimeout + cfg.Server.IdleTimeout
 	}
 
 	return &cfg, nil

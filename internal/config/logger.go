@@ -11,10 +11,12 @@ import (
 func InitLogger(env string) (*zap.Logger, error) {
 	var cfg zap.Config
 	if env == "production" {
+		// format is json
 		cfg = zap.NewProductionConfig()
 		cfg.EncoderConfig.EncodeTime = zapcore.ISO8601TimeEncoder
 		cfg.EncoderConfig.EncodeCaller = zapcore.ShortCallerEncoder
 	} else {
+		// format is console
 		cfg = zap.NewDevelopmentConfig()
 		cfg.EncoderConfig.EncodeTime = zapcore.ISO8601TimeEncoder
 		cfg.EncoderConfig.EncodeCaller = zapcore.ShortCallerEncoder

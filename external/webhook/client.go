@@ -25,7 +25,7 @@ type WebhookResponse struct {
 	Error     string `json:"error"`
 }
 
-// WebhookSiteSender implements the messages.WebhookSender interface.
+// WebhookSiteSender implements the WebhookSender interface.
 type WebhookSiteSender struct {
 	client         *http.Client
 	webhookURL     string
@@ -42,6 +42,7 @@ func NewWebhookSiteSender(url string, charLimit int, timeout time.Duration) *Web
 	}
 }
 
+// Send sends the content to external webhook and returns external ID
 func (s *WebhookSiteSender) Send(ctx context.Context, to, content string) (string, error) {
 	if len(content) > s.characterLimit {
 		return "", messages.ErrContentTooLong
@@ -74,7 +75,7 @@ func (s *WebhookSiteSender) Send(ctx context.Context, to, content string) (strin
 
 	if resp.StatusCode != http.StatusAccepted {
 		respBody, _ := io.ReadAll(resp.Body)
-		return "", fmt.Errorf("webhook responded with non-200 status code: %d, body: %s", resp.StatusCode, string(respBody))
+		return "", fmt.Errorf("webhook responded with non-202 status code: %d, body: %s", resp.StatusCode, string(respBody))
 	}
 
 	var webhookResp WebhookResponse

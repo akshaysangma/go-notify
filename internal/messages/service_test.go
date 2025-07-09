@@ -56,8 +56,6 @@ func (m *MockCacheService) CacheSentMessage(ctx context.Context, messageID, exte
 	return args.Error(0)
 }
 
-// --- Tests ---
-
 func TestMessageService_FetchAndSendPending(t *testing.T) {
 	mockRepo := new(MockMessageRepository)
 	mockWebhook := new(MockWebhookSender)

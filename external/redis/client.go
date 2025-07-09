@@ -1,3 +1,4 @@
+// package redis
 package redis
 
 import (
@@ -9,15 +10,16 @@ import (
 	"go.uber.org/zap"
 )
 
-type RedisService struct {
-	client RedisClientInterface
-	logger *zap.Logger
-}
-
-// RedisClientInterface defines the methods of *redis.Client that RedisService actually uses.
+// RedisClientInterface defines the methods of *redis.Client that RedisService uses.
+// Helps with Mocking and Dependency inversion.
 type RedisClientInterface interface {
 	Ping(ctx context.Context) *redis.StatusCmd
 	Set(ctx context.Context, key string, value interface{}, expiration time.Duration) *redis.StatusCmd
+}
+
+type RedisService struct {
+	client RedisClientInterface
+	logger *zap.Logger
 }
 
 func NewRedisService(addr string, logger *zap.Logger) *RedisService {
