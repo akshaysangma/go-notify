@@ -6,9 +6,12 @@ package sqlc
 
 import (
 	"context"
+
+	"github.com/google/uuid"
 )
 
 type Querier interface {
+	CreateMessage(ctx context.Context, arg CreateMessageParams) (uuid.UUID, error)
 	GetAllSentMessages(ctx context.Context, arg GetAllSentMessagesParams) ([]GetAllSentMessagesRow, error)
 	GetPendingMessages(ctx context.Context, limit int32) ([]GetPendingMessagesRow, error)
 	UpdateMessageStatus(ctx context.Context, arg UpdateMessageStatusParams) error

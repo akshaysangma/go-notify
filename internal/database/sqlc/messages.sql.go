@@ -13,6 +13,31 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const createMessage = `-- name: CreateMessage :one
+INSERT INTO notifications.messages (
+    id,
+    content,
+    recipient_phone_number,
+    status
+) VALUES (
+    $1, $2, $3, 'pending'
+)
+RETURNING id
+`
+
+type CreateMessageParams struct {
+	ID                   uuid.UUID `json:"id"`
+	Content              string    `json:"content"`
+	RecipientPhoneNumber string    `json:"recipient_phone_number"`
+}
+
+func (q *Queries) CreateMessage(ctx context.Context, arg CreateMessageParams) (uuid.UUID, error) {
+	row := q.db.QueryRow(ctx, createMessage, arg.ID, arg.Content, arg.RecipientPhoneNumber)
+	var id uuid.UUID
+	err := row.Scan(&id)
+	return id, err
+}
+
 const getAllSentMessages = `-- name: GetAllSentMessages :many
 SELECT
     id,

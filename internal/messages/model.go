@@ -15,14 +15,22 @@ var (
 
 // Message represents the message entity in the domain.
 type Message struct {
-	ID                string    `json:"id"`
-	Content           string    `json:"content"`
-	Recipient         string    `json:"recipient"`
-	Status            string    `json:"status"`
-	ExternalMessageID *string   `json:"external_message_id"`
-	LastFailureReason *string   `json:"last_failure_reason"`
-	CreatedAt         time.Time `json:"created_at"`
-	UpdatedAt         time.Time `json:"updated_at"`
+	// The unique identifier for the message.
+	ID string `json:"id" example:"a1b2c3d4-e5f6-7890-1234-567890abcdef"`
+	// The content of the message to be sent. Should not exceed content length limit.
+	Content string `json:"content" example:"Your appointment is confirmed."`
+	// The phone number of the recipient.
+	Recipient string `json:"recipient" example:"+15551234567"`
+	// The current status of the message.
+	Status string `json:"status" example:"sent"`
+	// The ID returned from the external webhook service.
+	ExternalMessageID *string `json:"external_message_id,omitempty" example:"ext-msg-12345"`
+	// The reason for the last failure, if any.
+	LastFailureReason *string `json:"last_failure_reason,omitempty" example:"Webhook provider timed out"`
+	// The timestamp when the message was created.
+	CreatedAt time.Time `json:"created_at" example:"2025-07-09T10:00:00Z"`
+	// The timestamp when the message was last updated.
+	UpdatedAt time.Time `json:"updated_at" example:"2025-07-09T10:01:00Z"`
 }
 
 // NewMessage is a constructor for creating a new Message, enforcing domain invariants.
@@ -30,8 +38,9 @@ func NewMessage(content, recipient string, charLimit int) (*Message, error) {
 	if recipient == "" {
 		return nil, ErrRecipientEmpty
 	}
+
 	if len(content) > charLimit {
-		return nil, ErrContentTooLong
+		return nil, fmt.Errorf("%w, limit : %v", ErrContentTooLong, charLimit)
 	}
 
 	return &Message{

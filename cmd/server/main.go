@@ -22,6 +22,20 @@ import (
 	"go.uber.org/zap"
 )
 
+// @title Go Notify API
+// @version 1.0
+// @description This is a service for automatically sending scheduled messages.
+// @termsOfService http://swagger.io/terms/
+
+// @contact.name API Support
+// @contact.url http://www.swagger.io/support
+// @contact.email support@swagger.io
+
+// @license.name Apache 2.0
+// @license.url http://www.apache.org/licenses/LICENSE-2.0.html
+
+// @host localhost:8080
+// @BasePath /
 func main() {
 	// Load configuration
 	cfg, err := config.LoadConfig()
@@ -64,7 +78,7 @@ func main() {
 	msgdispatchScheduler.Start()
 
 	mux := http.NewServeMux()
-	messageH := api.NewMessageHandler(msgService, logger)
+	messageH := api.NewMessageHandler(msgService, cfg.Webhook.CharacterLimit, logger)
 	schedulerH := api.NewSchedulerHandler(msgdispatchScheduler, logger)
 
 	routes := api.NewRouterDependecies(mux, messageH, schedulerH, logger)

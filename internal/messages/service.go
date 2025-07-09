@@ -150,6 +150,7 @@ func (s *MessageService) sendMessage(ctx context.Context, msg Message) error {
 	return nil
 }
 
+// GetAllSentMessages take limit and offset to return paginated sent message from database.
 func (s *MessageService) GetAllSentMessages(ctx context.Context, limit, offset int32) ([]Message, error) {
 	s.logger.Debug("Attempting to retrieve sent messages", zap.Int32("limit", limit), zap.Int32("offset", offset))
 	msgs, err := s.repo.GetSentMessages(ctx, limit, offset)
@@ -159,4 +160,29 @@ func (s *MessageService) GetAllSentMessages(ctx context.Context, limit, offset i
 	}
 	s.logger.Debug("Successfully retrieved sent messages", zap.Int("count", len(msgs)))
 	return msgs, nil
+}
+
+// CreateMessages insert a message for multiple recipients in the database
+func (s *MessageService) CreateMessages(ctx context.Context, content string, recipients []string, charLimit int) error {
+	var msgsToCreate []*Message
+	for _, recipient := range recipients {
+		msg, err := NewMessage(content, recipient, charLimit)
+		if err != nil {
+			return fmt.Errorf("invalid message for recipients %v: %w", recipients, err)
+		}
+		msgsToCreate = append(msgsToCreate, msg)
+	}
+
+	if len(msgsToCreate) == 0 {
+		return nil
+	}
+
+	err := s.repo.CreateMessages(ctx, msgsToCreate)
+	if err != nil {
+		s.logger.Error("Failed to bulk insert messages", zap.Error(err))
+		return fmt.Errorf("could not save messages: %w", err)
+	}
+
+	s.logger.Info("Successfully created messages for multiple recipients", zap.Int("count", len(msgsToCreate)))
+	return nil
 }

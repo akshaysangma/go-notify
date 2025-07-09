@@ -34,3 +34,14 @@ FROM notifications.messages
 WHERE status = 'sent'
 ORDER BY updated_at DESC
 LIMIT $1 OFFSET $2;
+
+-- name: CreateMessage :one
+INSERT INTO notifications.messages (
+    id,
+    content,
+    recipient_phone_number,
+    status
+) VALUES (
+    $1, $2, $3, 'pending'
+)
+RETURNING id;   

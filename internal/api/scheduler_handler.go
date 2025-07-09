@@ -30,31 +30,39 @@ func NewSchedulerHandler(scheduler *scheduler.MessageDispatchSchedulerImpl, logg
 	return h
 }
 
+// SchedulerStatusResponse represents the response for the scheduler status endpoint.
+type SchedulerStatusResponse struct {
+	Status string `json:"status" example:"running"`
+}
+
 // getSchedulerStatus godoc
-// @Summary Get the current status of the scheduler
-// @Description Returns whether the scheduler is currently running or stopped.
-// @Tags scheduler
-// @Produce json
-// @Success 200 {object} map[string]string "Current status of the scheduler"
-// @Router /api/v1/scheduler/status [get]
+// @Summary      Get the current status of the scheduler
+// @Description  Returns whether the scheduler is currently running or stopped.
+// @Tags         scheduler
+// @Produce      json
+// @Success      200 {object} SchedulerStatusResponse "Current status of the scheduler"
+// @Router /api/v1/scheduler [get]
 func (h *SchedulerHandler) getSchedulerStatus(w http.ResponseWriter, r *http.Request) {
-	status := "stopped"
-	if h.scheduler.IsRunning() {
-		status = "running"
+	resp := SchedulerStatusResponse{
+		Status: "stopped",
 	}
-	WriteJSONResponse(w, http.StatusOK, map[string]string{"status": status})
+	if h.scheduler.IsRunning() {
+		resp.Status = "running"
+	}
+	WriteJSONResponse(w, http.StatusOK, resp)
 }
 
 // schedulerControl godoc
-// @Summary Control the message sending scheduler (start/stop)
-// @Description Activates or deactivates the scheduler based on the 'action' query parameter.
-// @Tags scheduler
-// @Accept json
-// @Produce json
-// @Param action query string true "The action to perform: 'start' or 'stop'"
-// @Success 202 {object} map[string]string "Action signal sent successfully"
-// @Failure 400 {object} map[string]string "Invalid or missing 'action' parameter"
-// @Router /api/v1/scheduler/control [post]
+// @Summary      Control the message sending scheduler (start/stop)
+// @Description  Activates or deactivates the scheduler based on the 'action' query parameter.
+// @Tags         scheduler
+// @Produce      json
+// @Param        action query      string  true  "The action to perform: 'start' or 'stop'" Enums(start, stop)
+// @Success      202  {object}  SuccessResponse "Action signal sent successfully"
+// @Failure      400  {object}  HTTPError "Invalid or missing 'action' parameter"
+// @Failure      409  {object}  HTTPError "Scheduler is already in the desired state"
+// @Failure      500  {object}  HTTPError "Internal server error while performing the action"
+// @Router /api/v1/scheduler [post]
 func (h *SchedulerHandler) schedulerControl(w http.ResponseWriter, r *http.Request) {
 	action := r.URL.Query().Get("action")
 
@@ -69,7 +77,7 @@ func (h *SchedulerHandler) schedulerControl(w http.ResponseWriter, r *http.Reque
 			WriteJSONErrorResponse(w, http.StatusInternalServerError, "Failed to start scheduler", err)
 			return
 		}
-		WriteJSONResponse(w, http.StatusAccepted, map[string]string{"message": "Scheduler start signal sent."})
+		WriteJSONResponse(w, http.StatusAccepted, SuccessResponse{Message: "Scheduler start signal sent."})
 	case "stop":
 		err := h.scheduler.Stop()
 		if err != nil {
@@ -80,7 +88,7 @@ func (h *SchedulerHandler) schedulerControl(w http.ResponseWriter, r *http.Reque
 			WriteJSONErrorResponse(w, http.StatusInternalServerError, "Failed to stop scheduler", err)
 			return
 		}
-		WriteJSONResponse(w, http.StatusAccepted, map[string]string{"message": "Scheduler stop signal sent."})
+		WriteJSONResponse(w, http.StatusAccepted, SuccessResponse{Message: "Scheduler stop signal sent."})
 	default:
 		WriteJSONErrorResponse(w, http.StatusBadRequest, "Invalid or missing 'action' query parameter. Must be 'start' or 'stop'.", fmt.Errorf("action query param missing"))
 	}

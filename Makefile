@@ -13,11 +13,11 @@ down: ## Stop and remove all infrastructure services
 
 migrate-up: ## Apply all pending database migrations
 	@echo "Applying database migrations..."
-	goose -dir schema postgres "$(DATABASE_URL)" up
+	goose -dir sql/schema postgres "$(DATABASE_URL)" up
 
 migrate-down: ## Rollback the last applied database migration
 	@echo "Rolling back last database migration..."
-	goose -dir schema postgres "$(DATABASE_URL)" down
+	goose -dir sql/schema postgres "$(DATABASE_URL)" down
 
 generate: ## Run sqlc to generate Go code from SQL queries
 	@echo "Running sqlc generate..."

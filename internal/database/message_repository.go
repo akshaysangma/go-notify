@@ -13,11 +13,13 @@ import (
 
 type PostgresMessageRepository struct {
 	queries *sqlc.Queries
+	pool    *pgxpool.Pool // for TX
 }
 
 func NewPostgresMessageRepository(pool *pgxpool.Pool) *PostgresMessageRepository {
 	return &PostgresMessageRepository{
 		queries: sqlc.New(pool),
+		pool:    pool,
 	}
 }
 
@@ -112,4 +114,27 @@ func (r *PostgresMessageRepository) GetSentMessages(ctx context.Context, limit, 
 		msgs = append(msgs, *msg)
 	}
 	return msgs, nil
+}
+
+func (r *PostgresMessageRepository) CreateMessages(ctx context.Context, msgs []*messages.Message) error {
+	tx, err := r.pool.Begin(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to begin transaction: %w", err)
+	}
+	defer tx.Rollback(ctx)
+
+	qtx := r.queries.WithTx(tx)
+
+	for _, msg := range msgs {
+		_, err := qtx.CreateMessage(ctx, sqlc.CreateMessageParams{
+			ID:                   uuid.MustParse(msg.ID),
+			Content:              msg.Content,
+			RecipientPhoneNumber: msg.Recipient,
+		})
+		if err != nil {
+			return fmt.Errorf("failed to create message for recipient %s: %w", msg.Recipient, err)
+		}
+	}
+
+	return tx.Commit(ctx)
 }

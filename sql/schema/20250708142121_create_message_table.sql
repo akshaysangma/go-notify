@@ -20,6 +20,7 @@ CREATE TABLE notifications.messages (
     last_failure_reason TEXT,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+    CONSTRAINT content_length_check CHECK (char_length(content) <= 250)
 );
 
 CREATE INDEX idx_pending_messages ON notifications.messages (created_at) WHERE status = 'pending';

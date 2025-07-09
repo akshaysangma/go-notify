@@ -1,0 +1,279 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "This is a service for automatically sending scheduled messages.",
+        "title": "Go Notify API",
+        "termsOfService": "http://swagger.io/terms/",
+        "contact": {
+            "name": "API Support",
+            "url": "http://www.swagger.io/support",
+            "email": "support@swagger.io"
+        },
+        "license": {
+            "name": "Apache 2.0",
+            "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
+        },
+        "version": "1.0"
+    },
+    "host": "localhost:8080",
+    "basePath": "/",
+    "paths": {
+        "/api/v1/messages": {
+            "post": {
+                "description": "Creates a new message with the same content for a list of recipient phone numbers.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "messages"
+                ],
+                "summary": "Create a message for multiple recipients",
+                "parameters": [
+                    {
+                        "description": "Message Content and Recipients",
+                        "name": "message",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/api.CreateMessagesRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "202": {
+                        "description": "Messages have been accepted for processing",
+                        "schema": {
+                            "$ref": "#/definitions/api.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request body or message content",
+                        "schema": {
+                            "$ref": "#/definitions/api.HTTPError"
+                        }
+                    },
+                    "500": {
+                        "description": "Failed to save messages to the database",
+                        "schema": {
+                            "$ref": "#/definitions/api.HTTPError"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/messages/sent": {
+            "get": {
+                "description": "Gets a paginated list of all messages that have been successfully sent.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "messages"
+                ],
+                "summary": "Retrieve a list of sent messages",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "default": 20,
+                        "description": "Number of messages to return",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 0,
+                        "description": "Offset for pagination",
+                        "name": "offset",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "A list of sent messages",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/messages.Message"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Failed to retrieve sent messages",
+                        "schema": {
+                            "$ref": "#/definitions/api.HTTPError"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/scheduler": {
+            "get": {
+                "description": "Returns whether the scheduler is currently running or stopped.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "scheduler"
+                ],
+                "summary": "Get the current status of the scheduler",
+                "responses": {
+                    "200": {
+                        "description": "Current status of the scheduler",
+                        "schema": {
+                            "$ref": "#/definitions/api.SchedulerStatusResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Activates or deactivates the scheduler based on the 'action' query parameter.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "scheduler"
+                ],
+                "summary": "Control the message sending scheduler (start/stop)",
+                "parameters": [
+                    {
+                        "enum": [
+                            "start",
+                            "stop"
+                        ],
+                        "type": "string",
+                        "description": "The action to perform: 'start' or 'stop'",
+                        "name": "action",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "202": {
+                        "description": "Action signal sent successfully",
+                        "schema": {
+                            "$ref": "#/definitions/api.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid or missing 'action' parameter",
+                        "schema": {
+                            "$ref": "#/definitions/api.HTTPError"
+                        }
+                    },
+                    "409": {
+                        "description": "Scheduler is already in the desired state",
+                        "schema": {
+                            "$ref": "#/definitions/api.HTTPError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error while performing the action",
+                        "schema": {
+                            "$ref": "#/definitions/api.HTTPError"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "api.CreateMessagesRequest": {
+            "type": "object",
+            "properties": {
+                "content": {
+                    "type": "string",
+                    "example": "This is a message for multiple users."
+                },
+                "recipients": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "example": [
+                        "['+15551112222'",
+                        " '+15553334444']"
+                    ]
+                }
+            }
+        },
+        "api.HTTPError": {
+            "type": "object",
+            "properties": {
+                "details": {
+                    "type": "string",
+                    "example": "Optional: specific error details"
+                },
+                "error": {
+                    "type": "string",
+                    "example": "Descriptive error message"
+                }
+            }
+        },
+        "api.SchedulerStatusResponse": {
+            "type": "object",
+            "properties": {
+                "status": {
+                    "type": "string",
+                    "example": "running"
+                }
+            }
+        },
+        "api.SuccessResponse": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string",
+                    "example": "Action was successful"
+                }
+            }
+        },
+        "messages.Message": {
+            "type": "object",
+            "properties": {
+                "content": {
+                    "description": "The content of the message to be sent. Should not exceed content length limit.",
+                    "type": "string",
+                    "example": "Your appointment is confirmed."
+                },
+                "created_at": {
+                    "description": "The timestamp when the message was created.",
+                    "type": "string",
+                    "example": "2025-07-09T10:00:00Z"
+                },
+                "external_message_id": {
+                    "description": "The ID returned from the external webhook service.",
+                    "type": "string",
+                    "example": "ext-msg-12345"
+                },
+                "id": {
+                    "description": "The unique identifier for the message.",
+                    "type": "string",
+                    "example": "a1b2c3d4-e5f6-7890-1234-567890abcdef"
+                },
+                "last_failure_reason": {
+                    "description": "The reason for the last failure, if any.",
+                    "type": "string",
+                    "example": "Webhook provider timed out"
+                },
+                "recipient": {
+                    "description": "The phone number of the recipient.",
+                    "type": "string",
+                    "example": "+15551234567"
+                },
+                "status": {
+                    "description": "The current status of the message.",
+                    "type": "string",
+                    "example": "sent"
+                },
+                "updated_at": {
+                    "description": "The timestamp when the message was last updated.",
+                    "type": "string",
+                    "example": "2025-07-09T10:01:00Z"
+                }
+            }
+        }
+    }
+}

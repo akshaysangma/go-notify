@@ -12,4 +12,7 @@ type MessageRepository interface {
 
 	// GetSentMessages retrieves a paginated list of sent messages.
 	GetSentMessages(ctx context.Context, limit, offset int32) ([]Message, error)
+
+	// CreateMessages batch-inserts new messages into the database.
+	CreateMessages(ctx context.Context, msgs []*Message) error
 }
