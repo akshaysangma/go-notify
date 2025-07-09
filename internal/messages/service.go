@@ -166,6 +166,11 @@ func (s *MessageService) GetAllSentMessages(ctx context.Context, limit, offset i
 		return nil, fmt.Errorf("failed to get sent messages: %w", err)
 	}
 	s.logger.Debug("Successfully retrieved sent messages", zap.Int("count", len(msgs)))
+
+	if msgs == nil {
+		return []Message{}, nil
+	}
+
 	return msgs, nil
 }
 

@@ -8,19 +8,25 @@ import (
 	"github.com/akshaysangma/go-notify/internal/messages"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
-	"github.com/jackc/pgx/v5/pgxpool"
+)
+
+var (
+	ErrPoolType = fmt.Errorf("bad pgx pool type")
 )
 
 type PostgresMessageRepository struct {
 	queries *sqlc.Queries
-	pool    *pgxpool.Pool // for TX
+	pool    PgxPoolInterface // for TX
 }
 
-func NewPostgresMessageRepository(pool *pgxpool.Pool) *PostgresMessageRepository {
-	return &PostgresMessageRepository{
-		queries: sqlc.New(pool),
-		pool:    pool,
+func NewPostgresMessageRepository(pool PgxPoolInterface) (*PostgresMessageRepository, error) {
+	if dBTX, ok := pool.(sqlc.DBTX); ok {
+		return &PostgresMessageRepository{
+			queries: sqlc.New(dBTX),
+			pool:    pool,
+		}, nil
 	}
+	return nil, fmt.Errorf("unable to convert pool to dBTX")
 }
 
 // mapDBMessageToDomain converts a sqlc.Message to a messages.Message domain model.

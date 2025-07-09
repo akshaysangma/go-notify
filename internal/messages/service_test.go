@@ -106,8 +106,6 @@ func TestMessageService_FetchAndSendPending(t *testing.T) {
 			return m.ID == pendingMsg.ID && m.Status == "failed"
 		})).Return(nil).Once()
 
-		// The service itself doesn't return the worker error, it just logs it.
-		// So we expect a nil error from the overall batch operation.
 		err := service.FetchAndSendPending(context.Background(), 1)
 		assert.NoError(t, err)
 
@@ -130,7 +128,14 @@ func TestMessageService_GetAllSentMessages(t *testing.T) {
 		assert.Equal(t, expectedMessages, msgs)
 		mockRepo.AssertExpectations(t)
 	})
+	t.Run("Empty List", func(t *testing.T) {
+		mockRepo.On("GetSentMessages", mock.Anything, int32(10), int32(0)).Return([]Message{}, nil).Once()
 
+		msgs, err := service.GetAllSentMessages(context.Background(), 10, 0)
+		assert.NoError(t, err)
+		assert.Empty(t, msgs)
+		mockRepo.AssertExpectations(t)
+	})
 	t.Run("Repository Fails", func(t *testing.T) {
 		repoErr := errors.New("db error")
 		mockRepo.On("GetSentMessages", mock.Anything, int32(10), int32(0)).Return([]Message(nil), repoErr).Once()

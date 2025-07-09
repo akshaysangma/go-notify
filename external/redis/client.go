@@ -10,8 +10,14 @@ import (
 )
 
 type RedisService struct {
-	client *redis.Client
+	client RedisClientInterface
 	logger *zap.Logger
+}
+
+// RedisClientInterface defines the methods of *redis.Client that RedisService actually uses.
+type RedisClientInterface interface {
+	Ping(ctx context.Context) *redis.StatusCmd
+	Set(ctx context.Context, key string, value interface{}, expiration time.Duration) *redis.StatusCmd
 }
 
 func NewRedisService(addr string, logger *zap.Logger) *RedisService {

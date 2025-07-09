@@ -67,7 +67,10 @@ func main() {
 	workerPoolSize := 2 * runtime.NumCPU()
 	workerPoolSize = min(cfg.Scheduler.MessageRate, workerPoolSize)
 
-	msgRepo := database.NewPostgresMessageRepository(pgPool)
+	msgRepo, err := database.NewPostgresMessageRepository(pgPool)
+	if err != nil {
+		logger.Fatal("failed to initialize message repository", zap.Error(err))
+	}
 	webhookSiteSenderClient := webhook.NewWebhookSiteSender(cfg.Webhook.URL, cfg.Webhook.CharacterLimit, cfg.Server.WriteTimeout)
 	redisClient := redis.NewRedisService(cfg.Redis.Address, logger)
 	msgService := messages.NewMessageService(msgRepo, webhookSiteSenderClient, logger, redisClient, workerPoolSize, cfg.Scheduler.JobTimeout)
