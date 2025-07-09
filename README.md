@@ -105,12 +105,7 @@ This directory contains the PostgreSQL database schema definitions and SQL queri
 - Assumption:
     - `retrieve a list of sent messages` means all sent messages in the database (with basic offset, limit pagination) and not via [get the sent message list](https://docs.webhook.site/api/examples.html#get-all-data-sent-to-url) api of `webhook.site`. Data was not retrieved from cache as it has only 24 hours data (ephemeral).
     - `Upon project deployment, automatic message sending should -start` means the scheduler will start by default on app startup.
-- [docker-compose.yml](docker-compose.yml) contains required services to setup local environment : Postgres, Redis
-- [Makefile](Makefile) contains helper scripts. Run `make help` for more info.
-- [Cache client](external/redis/client.go) failure to intialize cache client will not stop application from running.
-- For failed messages to send, we can maintain a seperate table for dead_letter_message which tracks
-the msg ID and reason etc. Current implementation uses one table only.
-- In [Message Domain Model](internal/messages/model.go), The `Status` field in the `Message` domain model could be implemented as an iota constant with a `map[int]string` for better type safety, but this was skipped to avoid the need for custom marshalling methods.
+- `Scheduler Startup Behavior:` By default, the scheduler processes its first message batch after an initial delay defined by runs_every. To execute the first batch immediately upon startup, [an initial s.execute()](https://github.com/akshaysangma/go-notify/blob/main/internal/scheduler/message_dispatcher.go#L92) call can be enabled, and subsequent ticker intervals will then align from the completion of this initial run.  We can add a `delayed_start` boolean flag to the scheduler's configuration for conditionally wrapping the initial message batch run, providing a flexible way to control whether processing begins immediately on startup or after the configured delay.
 - [Work Pool Implementation](internal/messages/service.go) : Killing worker pool after every run (Implemented Approach) vs reusing worker pool 
     - Pros: 
         - Simple State Management: When the scheduler is paused, no background processes are running, making the "off" state very clean.
@@ -118,12 +113,17 @@ the msg ID and reason etc. Current implementation uses one table only.
     - Cons:
         - Performance Overhead: Constantly creating and destroying goroutines for every run introduces unnecessary performance overhead.
 - [Message Table Schema](sql/schema/20250708142121_create_message_table.sql) - content lenght on the database can be enforced using VARCHAR(size). Opted to try conditional CONSTRAINT.
-- If delay for first batch of message processing is undesirable uncomment [this line](https://github.com/akshaysangma/go-notify/blob/main/internal/scheduler/message_dispatcher.go#L92) . Note that due to this, scheduler ticker will start ticking from post first batch processing completion.
+- In [Message Domain Model](internal/messages/model.go), The `Status` field in the `Message` domain model could be implemented as an iota constant with a `map[int]string` for better type safety, but this was skipped to avoid the need for custom marshalling methods.
+- Failure to intialize/write via [Cache client](external/redis/client.go) will not stop application from running.
+- The Stop API command is a blocking call until scheduler has shutdown `(status code : 200)` where as Start API is non-blocking `(status code : 202)`.
 - The Scheduler config `grace_period` defines the timeout for each processing cycle (`runs_every` - `grace_period`) to prevent job overlaps, ensuring scheduler stability. The `timeout jobs` will rerun next `tick`.
 - Add `job_timeout` to avoid hang up due to I/O block during graceful shutdown.
+- [docker-compose.yml](docker-compose.yml) contains required services to setup local environment : Postgres, Redis
+- [Makefile](Makefile) contains helper scripts. Run `make help` for more info.
 - A multi-stage [Dockerfile](Dockerfile) is used to create a small and secure production image.
+- For failed messages to send, we can maintain a seperate table for dead_letter_message which tracks
+the msg ID and reason etc. Current implementation uses one table only.
 - To prioritize core functionality, middleware for features like authentication and monitoring was deferred
-- The Stop API command is blocking call until scheduler has shutdown in current Implementation.
 - Test for only core components added.
 - CICD not added.
 
