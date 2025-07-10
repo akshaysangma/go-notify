@@ -126,6 +126,13 @@ the msg ID and reason etc. Current implementation uses one table only.
 - To prioritize core functionality, middleware for features like authentication and monitoring was deferred
 - Test for only core components added.
 - CICD not added.
+- As for observability, apart from structure logging (implemented via zap lib), enabling opentelemetry (trace), prometheus (metrics) and straming them to platform like Kibana or Grafana for visualization and alerts would provide conprehensive visibility.
+- Some key metrics to track additionally apart from basic prometheus(go rotuines, cpu and memory usage),
+track would include:
+    - `API Performance:` Total requests, request duration, and error rates for all API endpoints.
+    - `Scheduler Health:` Scheduler running status, execution frequency, and skipped runs.
+    - `Message Processing:` Number of messages fetched, sent successfully, and failed.
+    - `External Service Interaction:` Latency and success/failure rates for webhook, Redis, and database operations.
 
 ## Third-Party Tools & Libraries
 
